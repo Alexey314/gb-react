@@ -4,3 +4,12 @@
   margin: 8px;
   border-radius: 8px;
 }
+
+.MessageAttributes {
+  font-size: 12px;
+}
+
+.MessageText {
+  font-size: 14px;
+  text-align: left;
+}
