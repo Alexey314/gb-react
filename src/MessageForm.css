@@ -1,0 +1,16 @@
+.MessageForm {
+  width: 100%;
+  display: flex;
+}
+
+.MessageForm-msg {
+  display: block;
+  flex-grow: 1;
+  outline: none;
+  padding: 4px;
+}
+
+.MessageForm-send {
+  display: block;
+  cursor: pointer;
+}
