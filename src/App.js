@@ -2,12 +2,14 @@ import "./App.css";
 import MessageList from "./MessageList.js";
 import MessageForm from "./MessageForm.js";
 import { useCallback, useEffect, useState } from "react";
-import bot from "./bot.js";
+import Bot from "./bot.js";
 
-bot.authorToAnswer = "You";
-bot.botAnswerTimeoutMs = 1500;
-bot.botName = "Mr. Robot";
-bot.botDefaultAnswer = "Your request is registered.";
+const bot = new Bot({
+  authorToAnswer: "You",
+  botAnswerTimeoutMs: 1500,
+  botName: "Mr. Robot",
+  botDefaultAnswer: "Your request is registered.",
+});
 
 const getCurrentDate = () => {
   const today = new Date();

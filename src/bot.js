@@ -1,39 +1,37 @@
 class Bot {
-  #botAnswerTimeoutMs = 0;
-  #authorToAnswer = "";
-  #botName = "r2d2";
-  #botDefaultAnswer = ":)";
+  #botAnswerTimeoutMs;
+  #authorToAnswer;
+  #botName;
+  #botDefaultAnswer;
 
-  // constructor() {}
-
-  set botAnswerTimeoutMs(val) {
-    this.#botAnswerTimeoutMs = val;
+  constructor({
+    authorToAnswer = "",
+    botAnswerTimeoutMs = 0,
+    botName = "r2d2",
+    botDefaultAnswer = ":)",
+  }) {
+    this.#botAnswerTimeoutMs = botAnswerTimeoutMs;
+    this.#authorToAnswer = String(authorToAnswer);
+    this.#botName = String(botName);
+    this.#botDefaultAnswer = String(botDefaultAnswer);
   }
 
-  set authorToAnswer(val) {
-    this.#authorToAnswer = val;
+  get botAnswerTimeoutMs() {
+    return this.#botAnswerTimeoutMs;
   }
 
-  set botName(val){
-    this.#botName = val;
-  }
-
-  set botDefaultAnswer(val){
-    this.#botDefaultAnswer = val;
-  }
-
-  processMessages (msgList, sendMsgFn) {
+  processMessages(msgList, sendMsgFn) {
     if (!Array.isArray(msgList) || !msgList.length) {
       return;
     }
     const lastMsg = msgList[msgList.length - 1];
     if (lastMsg.author === this.#authorToAnswer) {
       setTimeout(
-        () => sendMsgFn(this.#botDefaultAnswer, this.#botName ),
+        () => sendMsgFn(this.#botDefaultAnswer, this.#botName),
         this.#botAnswerTimeoutMs
       );
     }
-  };
+  }
 }
 
-export default new Bot();
+export default Bot;
