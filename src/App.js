@@ -6,54 +6,48 @@ import Bot from "./bot.js";
 
 const bot = new Bot({
   authorToAnswer: "You",
-  botAnswerTimeoutMs: 1500,
+  botAnswerDelay: 1500,
   botName: "Mr. Robot",
   botDefaultAnswer: "Your request is registered.",
 });
-
-const getCurrentDate = () => {
-  const today = new Date();
-  const dd = String(today.getDate()).padStart(2, "0");
-  const mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
-  const yyyy = today.getFullYear();
-  return dd + "." + mm + "." + yyyy;
-};
-
-const getCurrentTime = () => {
-  const today = new Date();
-  const hh = String(today.getHours()).padStart(2, "0");
-  const mm = String(today.getMinutes()).padStart(2, "0");
-  return hh + ":" + mm;
-};
 
 function App() {
   const [messageList, setMessageList] = useState([
     // { author: "You", text: "To be?", date: "11.07.2021", time: "19:54" },
     // { author: "You", text: "Or not to be?", date: "11.07.2021", time: "19:55" },
   ]);
-  const onSendMessage = useCallback((text, author) => {
-    const date = getCurrentDate();
-    const time = getCurrentTime();
-    const newMsg = {
-      author: author,
-      text,
-      date,
-      time,
+  const onSendMessage = useCallback(({ text, author, delay }) => {
+    const setterFn = () => {
+      const date = new Date();
+      const newMsg = {
+        author,
+        text,
+        date: date.toLocaleDateString(),
+        time: date.toLocaleTimeString(),
+      };
+      setMessageList((msgList) => {
+        const newMsgList = [...msgList, newMsg];
+        return newMsgList;
+      });
     };
-    setMessageList((msgList) => {
-      const newMsgList = [...msgList, newMsg];
-      return newMsgList;
-    });
+    if (delay && delay > 0) {
+      setTimeout(setterFn, delay);
+    } else {
+      setterFn();
+    }
     console.log("App.onSendMessage ", text);
   }, []);
 
   const onSendUserMessage = useCallback(
-    (text) => onSendMessage(text, "You"),
+    (text) => onSendMessage({ text, author: "You", delay: 0 }),
     [onSendMessage]
   );
 
   useEffect(() => {
-    bot.processMessages(messageList, onSendMessage);
+    const botMessage = bot.processMessages(messageList);
+    if (botMessage) {
+      onSendMessage(botMessage);
+    }
   }, [messageList, onSendMessage]);
 
   return (

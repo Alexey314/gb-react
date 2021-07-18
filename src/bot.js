@@ -1,35 +1,36 @@
 class Bot {
-  #botAnswerTimeoutMs;
+  #botAnswerDelay;
   #authorToAnswer;
   #botName;
   #botDefaultAnswer;
 
   constructor({
     authorToAnswer = "",
-    botAnswerTimeoutMs = 0,
+    botAnswerDelay = 0,
     botName = "r2d2",
     botDefaultAnswer = ":)",
   }) {
-    this.#botAnswerTimeoutMs = botAnswerTimeoutMs;
+    this.#botAnswerDelay = botAnswerDelay;
     this.#authorToAnswer = String(authorToAnswer);
     this.#botName = String(botName);
     this.#botDefaultAnswer = String(botDefaultAnswer);
   }
 
-  get botAnswerTimeoutMs() {
-    return this.#botAnswerTimeoutMs;
+  get botAnswerDelay() {
+    return this.#botAnswerDelay;
   }
 
-  processMessages(msgList, sendMsgFn) {
+  processMessages(msgList) {
     if (!Array.isArray(msgList) || !msgList.length) {
       return;
     }
     const lastMsg = msgList[msgList.length - 1];
     if (lastMsg.author === this.#authorToAnswer) {
-      setTimeout(
-        () => sendMsgFn(this.#botDefaultAnswer, this.#botName),
-        this.#botAnswerTimeoutMs
-      );
+      return {
+        author: String(this.#botName),
+        text: String(this.#botDefaultAnswer),
+        delay: this.#botAnswerDelay,
+      };
     }
   }
 }
