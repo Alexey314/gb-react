@@ -44,6 +44,7 @@ function App() {
   );
 
   useEffect(() => {
+    console.log("App on messageList change ");
     const botMessage = bot.processMessages(messageList);
     if (botMessage) {
       onSendMessage(botMessage);
