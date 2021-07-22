@@ -24,6 +24,7 @@ function MessageForm(props) {
       props.onSend(message);
     }
     inputRef.current.focus();
+    setMessage(()=>"");
   };
 
   return (
