@@ -1,5 +1,5 @@
 import "./MessageForm.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
@@ -17,11 +17,13 @@ function MessageForm(props) {
   const handleMessageChange = (event) => {
     setMessage(event.target.value);
   };
+  const inputRef = useRef();
   const onSend = (e) => {
     e.preventDefault();
     if (message.length) {
       props.onSend(message);
     }
+    inputRef.current.focus();
   };
 
   return (
@@ -38,6 +40,8 @@ function MessageForm(props) {
         onChange={handleMessageChange}
         variant="outlined"
         placeholder="Input message here"
+        autoFocus
+        inputRef={inputRef}
       />
       <Button
         type="submit"
