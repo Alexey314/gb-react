@@ -3,6 +3,8 @@ import MessageList from "./MessageList.js";
 import MessageForm from "./MessageForm.js";
 import { useCallback, useEffect, useState } from "react";
 import Bot from "./bot.js";
+import ChatList from "./ChatList.js";
+
 
 const bot = new Bot({
   authorToAnswer: "You",
@@ -15,6 +17,11 @@ function App() {
   const [messageList, setMessageList] = useState([
     // { author: "You", text: "To be?", date: "11.07.2021", time: "19:54" },
     // { author: "You", text: "Or not to be?", date: "11.07.2021", time: "19:55" },
+  ]);
+  const [chatList, setChatList] = useState([
+    { name: "John", id: "sfghdihf" },
+    { name: "Jane", id: "alerodsv" },
+    { name: "Bob", id: "ffbnjfds" },
   ]);
   const onSendMessage = useCallback(({ text, author, delay }) => {
     const setterFn = () => {
@@ -55,6 +62,7 @@ function App() {
     <div className="App">
       {/* <header className="App-header"></header> */}
       <main className="App-main">
+        <ChatList chatList={chatList}/>
         <MessageList messages={messageList} />
         <MessageForm onSend={onSendUserMessage} />
       </main>
