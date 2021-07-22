@@ -4,9 +4,9 @@ import { useState } from "react";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 1,
-    maxWidth: 752,
-    backgroundColor: theme.palette.background.paper,
+    // flexGrow: 1,
+    // maxWidth: 752,
+    // // backgroundColor: theme.palette.grey[100],
   },
   item: {
     backgroundColor: theme.palette.primary.paper,

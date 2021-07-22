@@ -4,7 +4,18 @@ import MessageForm from "./MessageForm.js";
 import { useCallback, useEffect, useState } from "react";
 import Bot from "./bot.js";
 import ChatList from "./ChatList.js";
+import { Grid } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 
+const useStyles = makeStyles((theme) => ({
+  rootGrid: {
+    minHeight: "100vh",
+    backgroundColor: theme.palette.background.paper,
+  },
+  chatList: {
+    backgroundColor: theme.palette.grey[100],
+  },
+}));
 
 const bot = new Bot({
   authorToAnswer: "You",
@@ -14,6 +25,7 @@ const bot = new Bot({
 });
 
 function App() {
+  const classes = useStyles();
   const [messageList, setMessageList] = useState([
     // { author: "You", text: "To be?", date: "11.07.2021", time: "19:54" },
     // { author: "You", text: "Or not to be?", date: "11.07.2021", time: "19:55" },
@@ -62,9 +74,24 @@ function App() {
     <div className="App">
       {/* <header className="App-header"></header> */}
       <main className="App-main">
-        <ChatList chatList={chatList}/>
-        <MessageList messages={messageList} />
-        <MessageForm onSend={onSendUserMessage} />
+        <Grid container className={classes.rootGrid} wrap="nowrap">
+          <Grid item className={classes.chatList}>
+            <ChatList chatList={chatList} />
+          </Grid>
+          <Grid
+            container
+            justifyContent="space-between"
+            direction="column"
+            alignItems="stretch"
+          >
+            <Grid item>
+              <MessageList messages={messageList} />
+            </Grid>
+            <Grid item>
+              <MessageForm onSend={onSendUserMessage} />
+            </Grid>
+          </Grid>
+        </Grid>
       </main>
     </div>
   );
