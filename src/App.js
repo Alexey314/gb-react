@@ -1,8 +1,25 @@
 import "./App.css";
-import { Container, List, ListItem } from "@material-ui/core";
+import { Container, List, ListItem, ListItemText } from "@material-ui/core";
 import { Link, Route, Switch } from "react-router-dom";
 import Profile from "./Profile";
 import ChatsView from "./ChatsView";
+
+const flexContainer = {
+  display: "flex",
+  flexDirection: "row",
+  padding: 0,
+};
+
+function ListItemLink({ to, text }) {
+  return (
+    <ListItem button component={Link} to={to}>
+      <ListItemText
+        primary={text}
+        primaryTypographyProps={{ align: "center" }}
+      />
+    </ListItem>
+  );
+}
 
 function App() {
   return (
@@ -11,25 +28,22 @@ function App() {
         <header>
           <h1>Messenger App</h1>
           <nav>
-            <List>
-              <ListItem>
-                <Link to="/">Home</Link>
-              </ListItem>
-              <ListItem>
-                <Link to="/chats">Chats</Link>
-              </ListItem>
-              <ListItem>
-                <Link to="/profile">Profile</Link>
-              </ListItem>
+            <List style={flexContainer}>
+              <ListItemLink to="/" text="Home" />
+              <ListItemLink to="/chats" text="Chats" />
+              <ListItemLink to="/profile" text="Profile" />
             </List>
           </nav>
         </header>
         <Switch>
           <Route exact path="/">
-            {<p>Home page</p>}
+            <p>Home page</p>
           </Route>
           <Route exact path="/profile" component={Profile} />
-          <Route exact path="/chats" component={ChatsView} />
+          <Route path="/chats/:chatId?" component={ChatsView} />
+          <Route>
+            <p>404 Page not found</p>
+          </Route>
         </Switch>
       </Container>
     </div>
