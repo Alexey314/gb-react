@@ -4,13 +4,5 @@
 }
 
 .MessageForm-msg {
-  display: block;
   flex-grow: 1;
-  outline: none;
-  padding: 4px;
-}
-
-.MessageForm-send {
-  display: block;
-  cursor: pointer;
 }

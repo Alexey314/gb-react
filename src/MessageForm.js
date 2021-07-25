@@ -1,20 +1,58 @@
-import './MessageForm.css';
-import { useRef } from "react";
+import "./MessageForm.css";
+import { useRef, useState } from "react";
+import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import Icon from "@material-ui/core/Icon";
+
+const useStyles = makeStyles((theme) => ({
+  button: {
+    margin: theme.spacing(1),
+  },
+}));
 
 function MessageForm(props) {
-  const inputEl = useRef(null);
+  const classes = useStyles();
+  const [message, setMessage] = useState("");
+  const handleMessageChange = (event) => {
+    setMessage(event.target.value);
+  };
+  const inputRef = useRef();
   const onSend = (e) => {
     e.preventDefault();
-    const text = String(inputEl.current.value);
-    if (text.length) {
-      props.onSend(text);
+    if (message.length) {
+      props.onSend(message);
     }
+    inputRef.current.focus();
+    setMessage(()=>"");
   };
 
   return (
-    <form className="MessageForm" onSubmit={onSend}>
-      <input className="MessageForm-msg" ref={inputEl} type="text" placeholder="Enter message"></input>
-      <input className="MessageForm-send" type="submit" value="Send"></input>
+    <form
+      className="MessageForm"
+      onSubmit={onSend}
+      noValidate
+      autoComplete="off"
+    >
+      <TextField
+        className="MessageForm-msg"
+        type="text"
+        value={message}
+        onChange={handleMessageChange}
+        variant="outlined"
+        placeholder="Input message here"
+        autoFocus
+        inputRef={inputRef}
+      />
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        className={classes.button}
+        endIcon={<Icon>send</Icon>}
+      >
+        Send
+      </Button>
     </form>
   );
 }
