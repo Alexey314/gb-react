@@ -6,10 +6,6 @@ import Bot from "./bot.js";
 import ChatList from "./ChatList.js";
 import { Grid } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { createTheme } from "@material-ui/core/styles";
-import purple from "@material-ui/core/colors/purple";
-import green from "@material-ui/core/colors/green";
-import { ThemeProvider } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   rootGrid: {
@@ -20,20 +16,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.grey[100],
   },
 }));
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: purple[500],
-    },
-    secondary: {
-      main: green[500],
-    },
-    text: {
-      primary: green[500],
-    },
-  },
-});
 
 const bot = new Bot({
   authorToAnswer: "You",
@@ -92,26 +74,24 @@ function App() {
     <div className="App">
       {/* <header className="App-header"></header> */}
       <main className="App-main">
-        <ThemeProvider theme={theme}>
-          <Grid container className={classes.rootGrid} wrap="nowrap">
-            <Grid item className={classes.chatList}>
-              <ChatList chatList={chatList} />
+        <Grid container className={classes.rootGrid} wrap="nowrap">
+          <Grid item className={classes.chatList}>
+            <ChatList chatList={chatList} />
+          </Grid>
+          <Grid
+            container
+            justifyContent="space-between"
+            direction="column"
+            alignItems="stretch"
+          >
+            <Grid item>
+              <MessageList messages={messageList} />
             </Grid>
-            <Grid
-              container
-              justifyContent="space-between"
-              direction="column"
-              alignItems="stretch"
-            >
-              <Grid item>
-                <MessageList messages={messageList} />
-              </Grid>
-              <Grid item>
-                <MessageForm onSend={onSendUserMessage} />
-              </Grid>
+            <Grid item>
+              <MessageForm onSend={onSendUserMessage} />
             </Grid>
           </Grid>
-        </ThemeProvider>
+        </Grid>
       </main>
     </div>
   );
