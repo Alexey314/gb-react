@@ -1,7 +1,5 @@
 import { List, ListItem, ListItemText } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { useEffect } from "react";
-import { useHistory, useParams } from "react-router";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,51 +15,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const getChatUrlById = (id) => {
-  return `/chats/${id}`;
-};
-
-function ChatList({ chatList }) {
+function ChatList({ chatList, chatId, onChatSelect }) {
   const classes = useStyles();
-  const { chatId: urlChatId } = useParams();
-  const history = useHistory();
-  const handleListItemClick = (event, id) => {
-    history.push(getChatUrlById(id));
+
+  const handleListItemClick = (evt, id) => {
+    evt.preventDefault();
+    onChatSelect(id);
   };
-
-  // initial chat selection
-  useEffect(() => {
-    const urlChatIdProvided =
-      typeof urlChatId !== "undefined" && String(urlChatId) !== "";
-    const chatListValid = chatList && chatList.length;
-
-    const selectDefaultChat = () => {
-      if (chatListValid) {
-        history.push(getChatUrlById(chatList[0].id));
-      }
-    };
-
-    if (urlChatIdProvided) {
-      const referredChatExist =
-        chatListValid && chatList.some((chat) => chat.id === urlChatId);
-      if (referredChatExist) {
-        // OK, no action needed
-        return;
-      } else {
-        // Bad id provided, select default chat
-        selectDefaultChat();
-      }
-    } else {
-      // chat id was not provided, select default chat
-      selectDefaultChat();
-    }
-  });
 
   const items = chatList.map((chat) => {
     return (
       <ListItem
         button
-        selected={urlChatId === chat.id}
+        selected={chatId === chat.id}
         onClick={(e) => handleListItemClick(e, chat.id)}
         className={classes.item}
         key={chat.id}
