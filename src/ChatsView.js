@@ -1,9 +1,9 @@
 import MessageList from "./MessageList.js";
 import MessageForm from "./MessageForm.js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Bot from "./bot.js";
 import { makeStyles } from "@material-ui/core/styles";
-import { Grid } from "@material-ui/core";
+import { Grid, Button } from "@material-ui/core";
 import ChatList from "./ChatList.js";
 import { useHistory, useParams } from "react-router";
 
@@ -32,9 +32,12 @@ function ChatsView() {
   const classes = useStyles();
   const { chatId: urlChatId } = useParams();
   const history = useHistory();
-  const goToChatUrlById = (id) => {
-    history.push(getChatUrlById(id));
-  };
+  const goToChatUrlById = useCallback(
+    (id) => {
+      history.push(getChatUrlById(id));
+    },
+    [history]
+  );
 
   const [chatList, setChatList] = useState([
     { name: "John", id: "sfghdihf", messageList: [] },
@@ -50,6 +53,7 @@ function ChatsView() {
   const urlChatIdProvided =
     typeof urlChatId !== "undefined" && String(urlChatId) !== "";
   const safeChatId = urlChatIdProvided ? urlChatId : null;
+  const prevChatId = usePrevious(safeChatId);
 
   // initial chat selection
   useEffect(() => {
@@ -87,6 +91,10 @@ function ChatsView() {
       setMessageList(() => {
         return [...chat.messageList];
       });
+    } else {
+      setMessageList(() => {
+        return [];
+      });
     }
   }, []);
 
@@ -102,9 +110,13 @@ function ChatsView() {
 
   useEffect(() => {
     if (chatList.length) {
-      loadChatMessages(chatList, safeChatId);
+      if (prevChatId !== safeChatId) loadChatMessages(chatList, safeChatId);
+    } else {
+      setMessageList(() => {
+        return [];
+      });
     }
-  }, [loadChatMessages, chatList, safeChatId]);
+  }, [loadChatMessages, chatList, safeChatId, prevChatId]);
 
   const onSendMessage = useCallback(({ text, author, delay }) => {
     const setterFn = () => {
@@ -145,6 +157,31 @@ function ChatsView() {
     goToChatUrlById(id);
   };
 
+  const onAddNewChat = () => {
+    setChatList((chatList) => {
+      const newChat = {
+        name: `Chat ${chatList.length + 1}`,
+        id: String(Date.now()),
+        messageList: [],
+      };
+      return [...chatList, newChat];
+    });
+  };
+
+  const onDelCurrentChat = () => {
+    setChatList((chatList) => {
+      return chatList.filter((chat) => String(chat.id) !== String(safeChatId));
+    });
+  };
+
+  useEffect(() => {
+    if (!chatList.some((chat) => String(chat.id) === String(safeChatId))) {
+      if (chatList.length) {
+        goToChatUrlById(chatList[0].id);
+      }
+    }
+  }, [safeChatId, chatList, goToChatUrlById]);
+
   return (
     <main className="ChatsView-main">
       <Grid container className={classes.rootGrid} wrap="nowrap">
@@ -154,6 +191,14 @@ function ChatsView() {
             chatId={safeChatId}
             onChatSelect={handleChatSelect}
           />
+          <Grid container direction="row" wrap="nowrap">
+            <Grid item>
+              <Button onClick={onAddNewChat}>Add</Button>
+            </Grid>
+            <Grid item>
+              <Button onClick={onDelCurrentChat}>Del</Button>
+            </Grid>
+          </Grid>
         </Grid>
         <Grid
           container
@@ -162,15 +207,30 @@ function ChatsView() {
           alignItems="stretch"
         >
           <Grid item>
-            <MessageList messages={messageList} />
+            {chatList.length ? <MessageList messages={messageList} /> : null}
           </Grid>
           <Grid item>
-            <MessageForm onSend={onSendUserMessage} />
+            {chatList.length ? (
+              <MessageForm onSend={onSendUserMessage} />
+            ) : null}
           </Grid>
         </Grid>
       </Grid>
     </main>
   );
+}
+
+// Hook
+function usePrevious(value) {
+  // The ref object is a generic container whose current property is mutable ...
+  // ... and can hold any value, similar to an instance property on a class
+  const ref = useRef();
+  // Store current value in ref
+  useEffect(() => {
+    ref.current = value;
+  }, [value]); // Only re-run if value changes
+  // Return previous value (happens before update in useEffect above)
+  return ref.current;
 }
 
 export default ChatsView;
