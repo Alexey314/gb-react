@@ -1,6 +1,5 @@
 import { List, ListItem, ListItemText } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { useState } from "react";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -16,26 +15,33 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function ChatList(props) {
+function ChatList({ chatList, chatId, onChatSelect }) {
   const classes = useStyles();
-  const [selectedId, setSelectedId] = useState("");
-  const handleListItemClick = (event, id) => {
-    setSelectedId(id);
+
+  const handleListItemClick = (evt, id) => {
+    evt.preventDefault();
+    onChatSelect(id);
   };
-  const items = props.chatList.map((chat) => {
+
+  const items = chatList.map((chat) => {
     return (
       <ListItem
         button
-        selected={selectedId === chat.id}
+        selected={chatId === chat.id}
         onClick={(e) => handleListItemClick(e, chat.id)}
         className={classes.item}
         key={chat.id}
       >
-        <ListItemText className={classes.itemText} primary={chat.name} />
+        <ListItemText primary={chat.name} />
       </ListItem>
     );
   });
-  return <List className={classes.root}>{items}</List>;
+
+  return (
+    <List className={classes.root} component="div">
+      {items}
+    </List>
+  );
 }
 
 export default ChatList;
