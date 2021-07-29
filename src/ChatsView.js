@@ -1,11 +1,18 @@
 import MessageList from "./MessageList.js";
 import MessageForm from "./MessageForm.js";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import Bot from "./bot.js";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Button } from "@material-ui/core";
 import ChatList from "./ChatList.js";
 import { useHistory, useParams } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  chatListAddChat,
+  chatListRemoveChat,
+  chatListRenameChat,
+  chatListSelectChat,
+} from "./chatList/state/chatListActions";
 
 const useStyles = makeStyles((theme) => ({
   rootGrid: {
@@ -25,7 +32,7 @@ const bot = new Bot({
 });
 
 const getChatUrlById = (id) => {
-  return `/chats/${id}`;
+  return id != null ? `/chats/${id}` : "/chats";
 };
 
 function ChatsView() {
@@ -34,50 +41,53 @@ function ChatsView() {
   const history = useHistory();
   const goToChatUrlById = useCallback(
     (id) => {
-      history.push(getChatUrlById(id));
+      history.replace(getChatUrlById(id));
     },
     [history]
   );
-
-  const [chatList, setChatList] = useState([
-    { name: "John", id: "sfghdihf", messageList: [] },
-    { name: "Jane", id: "alerodsv", messageList: [] },
-    { name: "Bob", id: "ffbnjfds", messageList: [] },
-  ]);
+  const dispatch = useDispatch();
+  const { chats: chatList, currentChatId } = useSelector(
+    (state) => state.chatList
+  );
+  // const [chatList, setChatList] = useState([
+  //   { name: "John", id: "sfghdihf", messageList: [] },
+  //   { name: "Jane", id: "alerodsv", messageList: [] },
+  //   { name: "Bob", id: "ffbnjfds", messageList: [] },
+  // ]);
 
   const [messageList, setMessageList] = useState([
     // { author: "You", text: "To be?", date: "11.07.2021", time: "19:54" },
     // { author: "You", text: "Or not to be?", date: "11.07.2021", time: "19:55" },
   ]);
 
-  const urlChatIdProvided =
-    typeof urlChatId !== "undefined" && String(urlChatId) !== "";
-  const safeChatId = urlChatIdProvided ? urlChatId : null;
-  const prevChatId = usePrevious(safeChatId);
+  const urlChatIdProvided = useMemo(
+    () => typeof urlChatId !== "undefined" && String(urlChatId) !== "",
+    [urlChatId]
+  );
+  const safeUrlChatId = useMemo(
+    () => (urlChatIdProvided ? String(urlChatId) : null),
+    [urlChatIdProvided, urlChatId]
+  );
 
   // initial chat selection
   useEffect(() => {
-    const chatListValid = chatList && chatList.length;
-
-    const selectDefaultChat = () => {
-      if (chatListValid) {
-        goToChatUrlById(chatList[0].id);
-      }
-    };
-
+    console.log({urlChatIdProvided, safeUrlChatId, currentChatId});
     if (urlChatIdProvided) {
-      const referredChatExist =
-        chatListValid && chatList.some((chat) => chat.id === urlChatId);
+      const referredChatExist = chatList.some(
+        (chat) => chat.id === safeUrlChatId
+      );
       if (referredChatExist) {
-        // OK, no action needed
-        return;
+        if (safeUrlChatId !== currentChatId) {
+          console.log("111");
+          dispatch(chatListSelectChat(safeUrlChatId));
+        }
       } else {
-        // Bad id provided, select default chat
-        selectDefaultChat();
+        console.log("222");
+        history.replace(getChatUrlById(currentChatId));
       }
-    } else {
-      // chat id was not provided, select default chat
-      selectDefaultChat();
+    } else if (currentChatId != null){
+      console.log("333");
+      history.replace(getChatUrlById(currentChatId));
     }
   });
 
@@ -98,25 +108,25 @@ function ChatsView() {
     }
   }, []);
 
-  const storeChatMessages = (id) => {
-    setChatList((chatList) => {
-      const chat = getChatById(chatList, id);
-      if (chat) {
-        chat.messageList = [...messageList];
-      }
-      return chatList;
-    });
-  };
+  // const storeChatMessages = (id) => {
+  //   setChatList((chatList) => {
+  //     const chat = getChatById(chatList, id);
+  //     if (chat) {
+  //       chat.messageList = [...messageList];
+  //     }
+  //     return chatList;
+  //   });
+  // };
 
-  useEffect(() => {
-    if (chatList.length) {
-      if (prevChatId !== safeChatId) loadChatMessages(chatList, safeChatId);
-    } else {
-      setMessageList(() => {
-        return [];
-      });
-    }
-  }, [loadChatMessages, chatList, safeChatId, prevChatId]);
+  // useEffect(() => {
+  //   if (chatList.length) {
+  //     if (prevChatId !== safeUrlChatId) loadChatMessages(chatList, safeUrlChatId);
+  //   } else {
+  //     setMessageList(() => {
+  //       return [];
+  //     });
+  //   }
+  // }, [loadChatMessages, chatList, safeUrlChatId, prevChatId]);
 
   const onSendMessage = useCallback(({ text, author, delay }) => {
     const setterFn = () => {
@@ -153,34 +163,25 @@ function ChatsView() {
   }, [messageList, onSendMessage]);
 
   const handleChatSelect = (id) => {
-    storeChatMessages(safeChatId);
+    dispatch(chatListSelectChat(id));
     goToChatUrlById(id);
   };
 
   const onAddNewChat = () => {
-    setChatList((chatList) => {
-      const newChat = {
-        name: `Chat ${chatList.length + 1}`,
-        id: String(Date.now()),
-        messageList: [],
-      };
-      return [...chatList, newChat];
-    });
+    dispatch(chatListAddChat(`Chat ${chatList.length + 1}`));
   };
 
   const onDelCurrentChat = () => {
-    setChatList((chatList) => {
-      return chatList.filter((chat) => String(chat.id) !== String(safeChatId));
-    });
+    dispatch(chatListRemoveChat(currentChatId));
   };
 
   useEffect(() => {
-    if (!chatList.some((chat) => String(chat.id) === String(safeChatId))) {
-      if (chatList.length) {
-        goToChatUrlById(chatList[0].id);
-      }
-    }
-  }, [safeChatId, chatList, goToChatUrlById]);
+    // if (!chatList.some((chat) => String(chat.id) === String(safeUrlChatId))) {
+    //   if (chatList.length) {
+    //     goToChatUrlById(chatList[0].id);
+    //   }
+    // }
+  }, [safeUrlChatId, chatList, goToChatUrlById]);
 
   return (
     <main className="ChatsView-main">
@@ -188,7 +189,7 @@ function ChatsView() {
         <Grid item className={classes.chatList}>
           <ChatList
             chatList={chatList}
-            chatId={safeChatId}
+            chatId={currentChatId}
             onChatSelect={handleChatSelect}
           />
           <Grid container direction="row" wrap="nowrap">
