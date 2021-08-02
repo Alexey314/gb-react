@@ -1,7 +1,7 @@
 import "./App.css";
 import { Container, List, ListItem, ListItemText } from "@material-ui/core";
 import { Link, Route, Switch } from "react-router-dom";
-import Profile from "./Profile";
+import Profile from "./profile/Profile";
 import ChatsView from "./ChatsView";
 
 const flexContainer = {
