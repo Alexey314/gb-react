@@ -31,7 +31,7 @@ const addChat = (state, action) => {
       id: getNewUniqueChatId(state),
     },
   ];
-  const currentChatId = chats.length == 1 ? chats[0].id : state.currentChatId;
+  const currentChatId = chats.length === 1 ? chats[0].id : state.currentChatId;
   return {
     ...state,
     chats,

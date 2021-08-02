@@ -1,18 +1,21 @@
-import MessageList from "./MessageList.js";
-import MessageForm from "./MessageForm.js";
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
-import Bot from "./bot.js";
+import MessageList from "../MessageList.js";
+import MessageForm from "../MessageForm.js";
+import { useCallback, useEffect, useMemo } from "react";
+import Bot from "../bot.js";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Button } from "@material-ui/core";
-import ChatList from "./ChatList.js";
+import ChatList from "../chatList/ChatList";
 import { useHistory, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
   chatListAddChat,
   chatListRemoveChat,
-  chatListRenameChat,
+  // chatListRenameChat,
   chatListSelectChat,
-} from "./chatList/state/chatListActions";
+} from "../chatList/state/chatListActions";
+import { chatSendMessage } from "../chat/state/chatActions";
+import { selectChatMessages } from "../store/chatReducer/selectors";
+import { selectChatList } from "../store/chatListReducer/selectors";
 
 const useStyles = makeStyles((theme) => ({
   rootGrid: {
@@ -46,19 +49,8 @@ function ChatsView() {
     [history]
   );
   const dispatch = useDispatch();
-  const { chats: chatList, currentChatId } = useSelector(
-    (state) => state.chatList
-  );
-  // const [chatList, setChatList] = useState([
-  //   { name: "John", id: "sfghdihf", messageList: [] },
-  //   { name: "Jane", id: "alerodsv", messageList: [] },
-  //   { name: "Bob", id: "ffbnjfds", messageList: [] },
-  // ]);
-
-  const [messageList, setMessageList] = useState([
-    // { author: "You", text: "To be?", date: "11.07.2021", time: "19:54" },
-    // { author: "You", text: "Or not to be?", date: "11.07.2021", time: "19:55" },
-  ]);
+  const { chats: chatList, currentChatId } = useSelector(selectChatList);
+  const messageList = useSelector(selectChatMessages);
 
   const urlChatIdProvided = useMemo(
     () => typeof urlChatId !== "undefined" && String(urlChatId) !== "",
@@ -71,65 +63,28 @@ function ChatsView() {
 
   // initial chat selection
   useEffect(() => {
-    console.log({urlChatIdProvided, safeUrlChatId, currentChatId});
+    // console.log({ urlChatIdProvided, safeUrlChatId, currentChatId });
     if (urlChatIdProvided) {
       const referredChatExist = chatList.some(
         (chat) => chat.id === safeUrlChatId
       );
       if (referredChatExist) {
         if (safeUrlChatId !== currentChatId) {
-          console.log("111");
+          // console.log("111");
           dispatch(chatListSelectChat(safeUrlChatId));
         }
       } else {
-        console.log("222");
+        // console.log("222");
         history.replace(getChatUrlById(currentChatId));
       }
-    } else if (currentChatId != null){
-      console.log("333");
+    } else if (currentChatId != null) {
+      // console.log("333");
       history.replace(getChatUrlById(currentChatId));
     }
   });
 
-  const getChatById = (chatList, id) => {
-    return chatList && chatList.find((chat) => String(chat.id) === String(id));
-  };
-
-  const loadChatMessages = useCallback((chatList, id) => {
-    const chat = getChatById(chatList, id);
-    if (chat) {
-      setMessageList(() => {
-        return [...chat.messageList];
-      });
-    } else {
-      setMessageList(() => {
-        return [];
-      });
-    }
-  }, []);
-
-  // const storeChatMessages = (id) => {
-  //   setChatList((chatList) => {
-  //     const chat = getChatById(chatList, id);
-  //     if (chat) {
-  //       chat.messageList = [...messageList];
-  //     }
-  //     return chatList;
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   if (chatList.length) {
-  //     if (prevChatId !== safeUrlChatId) loadChatMessages(chatList, safeUrlChatId);
-  //   } else {
-  //     setMessageList(() => {
-  //       return [];
-  //     });
-  //   }
-  // }, [loadChatMessages, chatList, safeUrlChatId, prevChatId]);
-
-  const onSendMessage = useCallback(({ text, author, delay }) => {
-    const setterFn = () => {
+  const onSendMessage = useCallback(
+    ({ text, author, delay }) => {
       const date = new Date();
       const newMsg = {
         author,
@@ -137,30 +92,15 @@ function ChatsView() {
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      setMessageList((msgList) => {
-        return [...msgList, newMsg];
-      });
-    };
-    if (delay && delay > 0) {
-      setTimeout(setterFn, delay);
-    } else {
-      setterFn();
-    }
-    console.log("ChatsView.onSendMessage ", text);
-  }, []);
+      dispatch(chatSendMessage(currentChatId, newMsg));
+    },
+    [dispatch, currentChatId]
+  );
 
   const onSendUserMessage = useCallback(
     (text) => onSendMessage({ text, author: "You", delay: 0 }),
     [onSendMessage]
   );
-
-  useEffect(() => {
-    console.log("ChatsView on messageList change ");
-    const botMessage = bot.processMessages(messageList);
-    if (botMessage) {
-      onSendMessage(botMessage);
-    }
-  }, [messageList, onSendMessage]);
 
   const handleChatSelect = (id) => {
     dispatch(chatListSelectChat(id));
@@ -174,14 +114,6 @@ function ChatsView() {
   const onDelCurrentChat = () => {
     dispatch(chatListRemoveChat(currentChatId));
   };
-
-  useEffect(() => {
-    // if (!chatList.some((chat) => String(chat.id) === String(safeUrlChatId))) {
-    //   if (chatList.length) {
-    //     goToChatUrlById(chatList[0].id);
-    //   }
-    // }
-  }, [safeUrlChatId, chatList, goToChatUrlById]);
 
   return (
     <main className="ChatsView-main">
@@ -219,19 +151,6 @@ function ChatsView() {
       </Grid>
     </main>
   );
-}
-
-// Hook
-function usePrevious(value) {
-  // The ref object is a generic container whose current property is mutable ...
-  // ... and can hold any value, similar to an instance property on a class
-  const ref = useRef();
-  // Store current value in ref
-  useEffect(() => {
-    ref.current = value;
-  }, [value]); // Only re-run if value changes
-  // Return previous value (happens before update in useEffect above)
-  return ref.current;
 }
 
 export default ChatsView;
