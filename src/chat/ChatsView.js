@@ -1,7 +1,6 @@
 import MessageList from "../MessageList.js";
 import MessageForm from "../MessageForm.js";
 import { useCallback, useEffect, useMemo } from "react";
-import Bot from "../bot.js";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Button } from "@material-ui/core";
 import ChatList from "../chatList/ChatList";
@@ -13,9 +12,10 @@ import {
   // chatListRenameChat,
   chatListSelectChat,
 } from "../chatList/state/chatListActions";
-import { chatSendMessage } from "../chat/state/chatActions";
+import { chatSendMessageWithThunk } from "../chat/state/chatActions";
 import { selectChatMessages } from "../store/chatReducer/selectors";
 import { selectChatList } from "../store/chatListReducer/selectors";
+import { selectProfile } from "../store/profileReducer/selectors";
 
 const useStyles = makeStyles((theme) => ({
   rootGrid: {
@@ -26,13 +26,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.grey[100],
   },
 }));
-
-const bot = new Bot({
-  authorToAnswer: "You",
-  botAnswerDelay: 1500,
-  botName: "Mr. Robot",
-  botDefaultAnswer: "Your request is registered.",
-});
 
 const getChatUrlById = (id) => {
   return id != null ? `/chats/${id}` : "/chats";
@@ -51,6 +44,7 @@ function ChatsView() {
   const dispatch = useDispatch();
   const { chats: chatList, currentChatId } = useSelector(selectChatList);
   const messageList = useSelector(selectChatMessages);
+  const { name } = useSelector(selectProfile);
 
   const urlChatIdProvided = useMemo(
     () => typeof urlChatId !== "undefined" && String(urlChatId) !== "",
@@ -83,23 +77,18 @@ function ChatsView() {
     }
   });
 
-  const onSendMessage = useCallback(
-    ({ text, author, delay }) => {
+  const onSendUserMessage = useCallback(
+    (text) => {
       const date = new Date();
       const newMsg = {
-        author,
+        author: String(name),
         text,
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      dispatch(chatSendMessage(currentChatId, newMsg));
+      dispatch(chatSendMessageWithThunk(currentChatId, newMsg));
     },
-    [dispatch, currentChatId]
-  );
-
-  const onSendUserMessage = useCallback(
-    (text) => onSendMessage({ text, author: "You", delay: 0 }),
-    [onSendMessage]
+    [dispatch, currentChatId, name]
   );
 
   const handleChatSelect = (id) => {

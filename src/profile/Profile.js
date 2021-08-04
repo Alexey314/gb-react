@@ -4,10 +4,11 @@ import {
   profileChangeName,
 } from "./state/profileActions";
 import { TextField, Checkbox, FormControlLabel, Grid } from "@material-ui/core";
+import { selectProfile } from "../store/profileReducer/selectors";
 
 function Profile(props) {
   const dispatch = useDispatch();
-  const { name, showName } = useSelector((state) => state.profile);
+  const { name, showName } = useSelector(selectProfile);
   const handleNameChange = (event) => {
     dispatch(profileChangeName(event.target.value));
   };
