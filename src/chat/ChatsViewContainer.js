@@ -7,7 +7,7 @@ import {
   // chatListRenameChat,
   chatListSelectChat,
 } from "../chatList/state/chatListActions";
-import { chatSendMessageWithThunk } from "../chat/state/chatActions";
+import { chatSendMessage } from "../chat/state/chatActions";
 import { selectChatMessages } from "../store/chatReducer/selectors";
 import { selectChatList } from "../store/chatListReducer/selectors";
 import { selectProfile } from "../store/profileReducer/selectors";
@@ -71,7 +71,7 @@ export default function ChatsViewContainer() {
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      dispatch(chatSendMessageWithThunk(currentChatId, newMsg));
+      dispatch(chatSendMessage(currentChatId, newMsg));
     },
     [dispatch, currentChatId, name]
   );

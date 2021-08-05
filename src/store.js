@@ -2,9 +2,10 @@ import { combineReducers, createStore, compose, applyMiddleware } from "redux";
 import profileReducer from "./profile/state/profileReducer";
 import chatListReducer from "./chatList/state/chatListReducer";
 import chatReducer from "./chat/state/chatReducer";
-import thunk from "redux-thunk";
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import createSagaMiddleware from 'redux-saga'
+import { watchSentMessages } from "./chat/state/chatSagas";
 
 const persistConfig = {
   key: 'root',
@@ -18,9 +19,13 @@ const rootReducer = combineReducers({
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
+const sagaMiddleware = createSagaMiddleware()
+
 export const store = createStore(
   persistedReducer,
-  composeEnhancers(applyMiddleware(thunk))
+  composeEnhancers(applyMiddleware(sagaMiddleware))
 );
+
+sagaMiddleware.run(watchSentMessages)
 
 export const persistor = persistStore(store);
