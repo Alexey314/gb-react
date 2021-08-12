@@ -34,7 +34,7 @@ export default function ChatsViewContainer() {
   const [chatList, setChatList] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
 
-  const messageList = useSelector(selectChatMessages);
+  const [messageList, setMessageList] = useState([]);
   const { name } = useSelector(selectProfile);
 
   const urlChatIdProvided = useMemo(
@@ -77,9 +77,9 @@ export default function ChatsViewContainer() {
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      dispatch(chatSendMessage(currentChatId, newMsg));
+      firebase.database().ref("chat").child(currentChatId).push(newMsg);
     },
-    [dispatch, currentChatId, name]
+    [currentChatId, name]
   );
 
   const handleChatSelect = useCallback(
@@ -103,6 +103,22 @@ export default function ChatsViewContainer() {
         setCurrentChatId(() => (newChatList.length ? newChatList[0].id : null));
       });
   }, []);
+
+  useEffect(() => {
+    if (currentChatId) {
+      firebase
+        .database()
+        .ref("chat")
+        .child(currentChatId)
+        .on("value", (snapshot) => {
+          const newMsgList = [];
+          snapshot.forEach((entry) => {
+            newMsgList.push({ id: entry.key, ...entry.val() });
+          });
+          setMessageList(() => newMsgList);
+        });
+    }
+  }, [currentChatId]);
 
   const onAddNewChat = useCallback(() => {
     firebase
