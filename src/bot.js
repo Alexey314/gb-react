@@ -1,38 +1,11 @@
-class Bot {
-  #botAnswerDelay;
-  #authorToAnswer;
-  #botName;
-  #botDefaultAnswer;
+export const BOT_NAME = "Alice";
 
-  constructor({
-    authorToAnswer = "",
-    botAnswerDelay = 0,
-    botName = "r2d2",
-    botDefaultAnswer = ":)",
-  }) {
-    this.#botAnswerDelay = botAnswerDelay;
-    this.#authorToAnswer = String(authorToAnswer);
-    this.#botName = String(botName);
-    this.#botDefaultAnswer = String(botDefaultAnswer);
-  }
-
-  get botAnswerDelay() {
-    return this.#botAnswerDelay;
-  }
-
-  processMessages(msgList) {
-    if (!Array.isArray(msgList) || !msgList.length) {
-      return;
-    }
-    const lastMsg = msgList[msgList.length - 1];
-    if (lastMsg.author === this.#authorToAnswer) {
-      return {
-        author: String(this.#botName),
-        text: String(this.#botDefaultAnswer),
-        delay: this.#botAnswerDelay,
-      };
-    }
-  }
+export function getBotAnswer(msg) {
+  const date = new Date();
+  return {
+    author: BOT_NAME,
+    text: `Welcome, ${msg.author}!`,
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString(),
+  };
 }
-
-export default Bot;

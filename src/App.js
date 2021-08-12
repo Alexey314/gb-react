@@ -2,7 +2,7 @@ import "./App.css";
 import { Container, List, ListItem, ListItemText } from "@material-ui/core";
 import { Link, Route, Switch } from "react-router-dom";
 import Profile from "./profile/Profile";
-import ChatsView from "./chat/ChatsView";
+import ChatsViewContainer from "./chat/ChatsViewContainer";
 
 const flexContainer = {
   display: "flex",
@@ -40,7 +40,7 @@ function App() {
             <p>Home page</p>
           </Route>
           <Route exact path="/profile" component={Profile} />
-          <Route path="/chats/:chatId?" component={ChatsView} />
+          <Route path="/chats/:chatId?" component={ChatsViewContainer} />
           <Route>
             <p>404 Page not found</p>
           </Route>
