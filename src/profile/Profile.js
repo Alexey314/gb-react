@@ -12,16 +12,50 @@ import {
 } from "@material-ui/core";
 import { selectProfile } from "../store/profileReducer/selectors";
 import firebase from "firebase/app";
-import "firebase/auth";
+import "firebase/database";
+import { useEffect, useState } from "react";
+
 
 function Profile(props) {
   const dispatch = useDispatch();
-  const { name, showName } = useSelector(selectProfile);
+  // const { name, isOnline } = useSelector(selectProfile);
+  const [ name, setName] = useState("");
+  const [ isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    const user = firebase.auth().currentUser;
+    firebase
+      .database()
+      .ref("profile")
+      .child(user.uid)
+      .on("value", (snapshot) => {
+        const {name = "unnamed", isOnline = true} = snapshot.val();
+        setName(()=>String(name));
+        setIsOnline(()=>isOnline);
+      });
+  }, []);
+
   const handleNameChange = (event) => {
-    dispatch(profileChangeName(event.target.value));
+    // dispatch(profileChangeName(event.target.value));
+    const user = firebase.auth().currentUser;
+    // console.log("user = ", user);
+    firebase
+      .database()
+      .ref("profile")
+      .child(user.uid)
+      .child("name")
+      .set(event.target.value);
   };
-  const handleShowNameChange = (event) => {
-    dispatch(profileChangeShowName(event.target.checked));
+  const handleIsOnlineChange = (event) => {
+    // dispatch(profileChangeShowName(event.target.checked));
+    const user = firebase.auth().currentUser;
+    // console.log("user = ", user);
+    firebase
+      .database()
+      .ref("profile")
+      .child(user.uid)
+      .child("isOnline")
+      .set(event.target.checked);
   };
 
   const handleLogout = async (e) => {
@@ -55,13 +89,13 @@ function Profile(props) {
           <FormControlLabel
             control={
               <Checkbox
-                checked={showName}
-                onChange={handleShowNameChange}
-                name="checkedB"
+                checked={isOnline}
+                onChange={handleIsOnlineChange}
+                name="isOnlineCB"
                 color="primary"
               />
             }
-            label="Show name"
+            label="Is online"
           />
         </Grid>
         <Grid item>
