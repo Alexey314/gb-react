@@ -1,7 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
-  profileChangeShowName,
-  profileChangeName,
+  profileChangeIsOnlineWithFirebase,
+  profileChangeNameWithFirebase,
+  profileInitTrackingWithFirebase,
 } from "./state/profileActions";
 import {
   TextField,
@@ -13,49 +14,21 @@ import {
 import { selectProfile } from "../store/profileReducer/selectors";
 import firebase from "firebase/app";
 import "firebase/database";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-
-function Profile(props) {
+function Profile() {
   const dispatch = useDispatch();
-  // const { name, isOnline } = useSelector(selectProfile);
-  const [ name, setName] = useState("");
-  const [ isOnline, setIsOnline] = useState(true);
+  const { name, isOnline } = useSelector(selectProfile);
 
   useEffect(() => {
-    const user = firebase.auth().currentUser;
-    firebase
-      .database()
-      .ref("profile")
-      .child(user.uid)
-      .on("value", (snapshot) => {
-        const {name = "unnamed", isOnline = true} = snapshot.val();
-        setName(()=>String(name));
-        setIsOnline(()=>isOnline);
-      });
-  }, []);
+    dispatch(profileInitTrackingWithFirebase());
+  }, [dispatch]);
 
   const handleNameChange = (event) => {
-    // dispatch(profileChangeName(event.target.value));
-    const user = firebase.auth().currentUser;
-    // console.log("user = ", user);
-    firebase
-      .database()
-      .ref("profile")
-      .child(user.uid)
-      .child("name")
-      .set(event.target.value);
+    dispatch(profileChangeNameWithFirebase(event.target.value));
   };
   const handleIsOnlineChange = (event) => {
-    // dispatch(profileChangeShowName(event.target.checked));
-    const user = firebase.auth().currentUser;
-    // console.log("user = ", user);
-    firebase
-      .database()
-      .ref("profile")
-      .child(user.uid)
-      .child("isOnline")
-      .set(event.target.checked);
+    dispatch(profileChangeIsOnlineWithFirebase(event.target.checked));
   };
 
   const handleLogout = async (e) => {
@@ -89,7 +62,7 @@ function Profile(props) {
           <FormControlLabel
             control={
               <Checkbox
-                checked={isOnline}
+                checked={isOnline || false}
                 onChange={handleIsOnlineChange}
                 name="isOnlineCB"
                 color="primary"
