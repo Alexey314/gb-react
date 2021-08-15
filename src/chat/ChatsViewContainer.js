@@ -2,19 +2,23 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useHistory, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  chatListAddChat,
-  chatListRemoveChat,
+  chatListAddChatWithFirebase,
+  chatListInitTrackingWithFirebase,
+  chatListRemoveChatWithFirebase,
   // chatListRenameChat,
   chatListSelectChat,
 } from "../chatList/state/chatListActions";
-import { chatSendMessage } from "../chat/state/chatActions";
+import {
+  chatInitTrackingWithFirebase,
+  chatSendMessageWithFirebase,
+} from "../chat/state/chatActions";
 import { selectChatMessages } from "../store/chatReducer/selectors";
-import { selectChatList } from "../store/chatListReducer/selectors";
+import {
+  selectChatList,
+  selectCurrentChatId,
+} from "../store/chatListReducer/selectors";
 import { selectProfile } from "../store/profileReducer/selectors";
 import ChatsView from "./ChatsView";
-import { useState } from "react";
-import firebase from "firebase/app";
-import "firebase/database";
 
 const getChatUrlById = (id) => {
   return id != null ? `/chats/${id}` : "/chats";
@@ -31,10 +35,10 @@ export default function ChatsViewContainer() {
   );
   const dispatch = useDispatch();
 
-  const [chatList, setChatList] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
+  const chatList = useSelector(selectChatList);
+  const currentChatId = useSelector(selectCurrentChatId);
 
-  const [messageList, setMessageList] = useState([]);
+  const messageList = useSelector(selectChatMessages);
   const { name } = useSelector(selectProfile);
 
   const urlChatIdProvided = useMemo(
@@ -56,7 +60,7 @@ export default function ChatsViewContainer() {
       if (referredChatExist) {
         if (safeUrlChatId !== currentChatId) {
           // console.log("111");
-          setCurrentChatId(() => safeUrlChatId);
+          dispatch(chatListSelectChat(safeUrlChatId));
         }
       } else {
         // console.log("222");
@@ -66,7 +70,14 @@ export default function ChatsViewContainer() {
       // console.log("333");
       history.replace(getChatUrlById(currentChatId));
     }
-  }, [urlChatIdProvided, safeUrlChatId, currentChatId, chatList, history]);
+  }, [
+    dispatch,
+    urlChatIdProvided,
+    safeUrlChatId,
+    currentChatId,
+    chatList,
+    history,
+  ]);
 
   const onSendUserMessage = useCallback(
     (text) => {
@@ -77,61 +88,35 @@ export default function ChatsViewContainer() {
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      firebase.database().ref("chat").child(currentChatId).push(newMsg);
+      dispatch(chatSendMessageWithFirebase(currentChatId, newMsg));
     },
-    [currentChatId, name]
+    [dispatch, currentChatId, name]
   );
 
   const handleChatSelect = useCallback(
     (id) => {
-      setCurrentChatId(() => id);
+      dispatch(chatListSelectChat(id));
       goToChatUrlById(id);
     },
-    [goToChatUrlById]
+    [dispatch, goToChatUrlById]
   );
 
   useEffect(() => {
-    firebase
-      .database()
-      .ref("chatList")
-      .on("value", (snapshot) => {
-        const newChatList = [];
-        snapshot.forEach((entry) => {
-          newChatList.push({ id: entry.key, ...entry.val() });
-        });
-        setChatList(newChatList);
-        setCurrentChatId(() => (newChatList.length ? newChatList[0].id : null));
-      });
-  }, []);
+    dispatch(chatInitTrackingWithFirebase(currentChatId));
+  }, [dispatch, currentChatId]);
 
   useEffect(() => {
-    if (currentChatId) {
-      firebase
-        .database()
-        .ref("chat")
-        .child(currentChatId)
-        .on("value", (snapshot) => {
-          const newMsgList = [];
-          snapshot.forEach((entry) => {
-            newMsgList.push({ id: entry.key, ...entry.val() });
-          });
-          setMessageList(() => newMsgList);
-        });
-    }
-  }, [currentChatId]);
+    dispatch(chatListInitTrackingWithFirebase());
+  }, [dispatch]);
 
   const onAddNewChat = useCallback(() => {
-    firebase
-      .database()
-      .ref("chatList")
-      .child(`Chat_${Date.now()}_${chatList.length + 1}`)
-      .child("name")
-      .set(`Chat ${chatList.length + 1}`);
-  }, [chatList.length]);
+    const newChatName = `Chat ${chatList.length + 1}`;
+    dispatch(chatListAddChatWithFirebase(newChatName));
+  }, [dispatch, chatList.length]);
 
   const onDelCurrentChat = useCallback(() => {
-    firebase.database().ref("chatList").child(currentChatId).remove();
-  }, [currentChatId]);
+    dispatch(chatListRemoveChatWithFirebase(currentChatId));
+  }, [dispatch, currentChatId]);
 
   return ChatsView({
     chatList,

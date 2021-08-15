@@ -1,5 +1,6 @@
 import {
   ADD_CHAT,
+  CHAT_LIST_SET_LIST,
   REMOVE_CHAT,
   RENAME_CHAT,
   SELECT_CHAT,
@@ -77,11 +78,12 @@ const renameChat = (state, action) => {
 const selectChat = (state, action) => {
   return {
     ...state,
-    currentChatId: state.chats.some(
-      (chat) => chat.id === String(action.payload.id)
-    )
-      ? String(action.payload.id)
-      : state.currentChatId,
+    currentChatId: String(action.payload.id),
+    // currentChatId: state.chats.some(
+    //   (chat) => chat.id === String(action.payload.id)
+    // )
+    //   ? String(action.payload.id)
+    //   : state.currentChatId,
   };
 };
 
@@ -95,6 +97,11 @@ export default function chatListReducer(state = initialState, action) {
       return renameChat(state, action);
     case SELECT_CHAT:
       return selectChat(state, action);
+    case CHAT_LIST_SET_LIST:
+      return {
+        ...state,
+        chats: action.payload.newList,
+      };
     default:
       return state;
   }
