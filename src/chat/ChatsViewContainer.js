@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { lazy, useCallback, useEffect, useMemo } from "react";
 import { useHistory, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -18,7 +18,8 @@ import {
   selectCurrentChatId,
 } from "../store/chatListReducer/selectors";
 import { selectProfile } from "../store/profileReducer/selectors";
-import ChatsView from "./ChatsView";
+// import ChatsView from "./ChatsView";
+const ChatsView = lazy(() => import("./ChatsView"));
 
 const getChatUrlById = (id) => {
   return id != null ? `/chats/${id}` : "/chats";
@@ -118,13 +119,17 @@ export default function ChatsViewContainer() {
     dispatch(chatListRemoveChatWithFirebase(currentChatId));
   }, [dispatch, currentChatId]);
 
-  return ChatsView({
-    chatList,
-    currentChatId,
-    handleChatSelect,
-    onAddNewChat,
-    onDelCurrentChat,
-    messageList,
-    onSendUserMessage,
-  });
+  return (
+    <ChatsView
+      {...{
+        chatList,
+        currentChatId,
+        handleChatSelect,
+        onAddNewChat,
+        onDelCurrentChat,
+        messageList,
+        onSendUserMessage,
+      }}
+    />
+  );
 }

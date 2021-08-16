@@ -3,7 +3,7 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import { Link } from "react-router-dom";
 
-export const Signup = () => {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -60,4 +60,4 @@ export const Signup = () => {
       </form>
     </div>
   );
-};
+}
