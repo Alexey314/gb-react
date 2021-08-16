@@ -23,7 +23,7 @@ function ChatList({ chatList, chatId, onChatSelect }) {
     onChatSelect(id);
   };
 
-  const items = chatList.map((chat) => {
+  const items = chatList && chatList.map((chat) => {
     return (
       <ListItem
         button
