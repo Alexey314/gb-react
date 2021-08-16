@@ -1,24 +1,54 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
-  profileChangeShowName,
-  profileChangeName,
+  profileChangeIsOnlineWithFirebase,
+  profileChangeNameWithFirebase,
+  profileInitTrackingWithFirebase,
 } from "./state/profileActions";
-import { TextField, Checkbox, FormControlLabel, Grid } from "@material-ui/core";
+import {
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Button,
+} from "@material-ui/core";
 import { selectProfile } from "../store/profileReducer/selectors";
+import firebase from "firebase/app";
+import "firebase/database";
+import { useEffect } from "react";
 
-function Profile(props) {
+function Profile() {
   const dispatch = useDispatch();
-  const { name, showName } = useSelector(selectProfile);
+  const { name, isOnline } = useSelector(selectProfile);
+
+  useEffect(() => {
+    dispatch(profileInitTrackingWithFirebase());
+  }, [dispatch]);
+
   const handleNameChange = (event) => {
-    dispatch(profileChangeName(event.target.value));
+    dispatch(profileChangeNameWithFirebase(event.target.value));
   };
-  const handleShowNameChange = (event) => {
-    dispatch(profileChangeShowName(event.target.checked));
+  const handleIsOnlineChange = (event) => {
+    dispatch(profileChangeIsOnlineWithFirebase(event.target.checked));
+  };
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+
+    try {
+      await firebase.auth().signOut();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <>
-      <Grid container direction="column" alignItems="flex-start" alignContent="center">
+      <Grid
+        container
+        direction="column"
+        alignItems="flex-start"
+        alignContent="center"
+      >
         <Grid item>
           <TextField
             id="filled-name"
@@ -32,14 +62,19 @@ function Profile(props) {
           <FormControlLabel
             control={
               <Checkbox
-                checked={showName}
-                onChange={handleShowNameChange}
-                name="checkedB"
+                checked={isOnline || false}
+                onChange={handleIsOnlineChange}
+                name="isOnlineCB"
                 color="primary"
               />
             }
-            label="Show name"
+            label="Is online"
           />
+        </Grid>
+        <Grid item>
+          <Button variant="outlined" onClick={handleLogout}>
+            Logout
+          </Button>
         </Grid>
       </Grid>
     </>
