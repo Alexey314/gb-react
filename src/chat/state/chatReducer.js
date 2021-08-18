@@ -1,5 +1,4 @@
-import { SEND_MESSAGE } from "./chatActions";
-
+import { CHAT_SET_MESSAGES, SEND_MESSAGE } from "./chatActions";
 
 const initialState = {
   // dflfbvjclkvm: [
@@ -32,6 +31,11 @@ export default function chatReducer(state = initialState, action) {
   switch (action.type) {
     case SEND_MESSAGE:
       return sendMsg(state, action);
+    case CHAT_SET_MESSAGES:
+      return {
+        ...state,
+        [action.payload.chatId]: action.payload.messages,
+      };
     default:
       return state;
   }

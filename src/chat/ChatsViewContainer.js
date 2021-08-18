@@ -2,14 +2,21 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useHistory, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  chatListAddChat,
-  chatListRemoveChat,
+  chatListAddChatWithFirebase,
+  chatListInitTrackingWithFirebase,
+  chatListRemoveChatWithFirebase,
   // chatListRenameChat,
   chatListSelectChat,
 } from "../chatList/state/chatListActions";
-import { chatSendMessage } from "../chat/state/chatActions";
+import {
+  chatInitTrackingWithFirebase,
+  chatSendMessageWithFirebase,
+} from "../chat/state/chatActions";
 import { selectChatMessages } from "../store/chatReducer/selectors";
-import { selectChatList } from "../store/chatListReducer/selectors";
+import {
+  selectChatList,
+  selectCurrentChatId,
+} from "../store/chatListReducer/selectors";
 import { selectProfile } from "../store/profileReducer/selectors";
 import ChatsView from "./ChatsView";
 
@@ -27,7 +34,10 @@ export default function ChatsViewContainer() {
     [history]
   );
   const dispatch = useDispatch();
-  const { chats: chatList, currentChatId } = useSelector(selectChatList);
+
+  const chatList = useSelector(selectChatList);
+  const currentChatId = useSelector(selectCurrentChatId);
+
   const messageList = useSelector(selectChatMessages);
   const { name } = useSelector(selectProfile);
 
@@ -60,7 +70,14 @@ export default function ChatsViewContainer() {
       // console.log("333");
       history.replace(getChatUrlById(currentChatId));
     }
-  });
+  }, [
+    dispatch,
+    urlChatIdProvided,
+    safeUrlChatId,
+    currentChatId,
+    chatList,
+    history,
+  ]);
 
   const onSendUserMessage = useCallback(
     (text) => {
@@ -71,7 +88,7 @@ export default function ChatsViewContainer() {
         date: date.toLocaleDateString(),
         time: date.toLocaleTimeString(),
       };
-      dispatch(chatSendMessage(currentChatId, newMsg));
+      dispatch(chatSendMessageWithFirebase(currentChatId, newMsg));
     },
     [dispatch, currentChatId, name]
   );
@@ -84,12 +101,21 @@ export default function ChatsViewContainer() {
     [dispatch, goToChatUrlById]
   );
 
+  useEffect(() => {
+    dispatch(chatInitTrackingWithFirebase(currentChatId));
+  }, [dispatch, currentChatId]);
+
+  useEffect(() => {
+    dispatch(chatListInitTrackingWithFirebase());
+  }, [dispatch]);
+
   const onAddNewChat = useCallback(() => {
-    dispatch(chatListAddChat(`Chat ${chatList.length + 1}`));
+    const newChatName = `Chat ${chatList.length + 1}`;
+    dispatch(chatListAddChatWithFirebase(newChatName));
   }, [dispatch, chatList.length]);
 
   const onDelCurrentChat = useCallback(() => {
-    dispatch(chatListRemoveChat(currentChatId));
+    dispatch(chatListRemoveChatWithFirebase(currentChatId));
   }, [dispatch, currentChatId]);
 
   return ChatsView({

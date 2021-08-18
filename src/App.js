@@ -4,6 +4,12 @@ import { Link, Route, Switch } from "react-router-dom";
 import Profile from "./profile/Profile";
 import ChatsViewContainer from "./chat/ChatsViewContainer";
 import WeatherContainer from "./weather/WeatherContainer";
+import PrivateRoute from "./hocs/PrivateRoute";
+import { useEffect, useState } from "react";
+import firebase from "firebase/app";
+import "firebase/auth";
+import { Login } from "./login/Login";
+import { Signup } from "./signup/Signup";
 
 const flexContainer = {
   display: "flex",
@@ -23,6 +29,18 @@ function ListItemLink({ to, text }) {
 }
 
 function App() {
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        setAuthed(true);
+      } else {
+        setAuthed(false);
+      }
+    });
+  }, []);
+
   return (
     <div className="App">
       <Container maxWidth="sm">
@@ -42,8 +60,19 @@ function App() {
             <p>Home page</p>
           </Route>
           <Route exact path="/weather" component={WeatherContainer} />
-          <Route exact path="/profile" component={Profile} />
-          <Route path="/chats/:chatId?" component={ChatsViewContainer} />
+          <PrivateRoute
+            authenticated={authed}
+            exact
+            path="/profile"
+            component={Profile}
+          />
+          <Route exact path="/login" component={Login} />
+          <Route exact path="/signup" component={Signup} />
+          <PrivateRoute
+            authenticated={authed}
+            path="/chats/:chatId?"
+            component={ChatsViewContainer}
+          />
           <Route>
             <p>404 Page not found</p>
           </Route>
